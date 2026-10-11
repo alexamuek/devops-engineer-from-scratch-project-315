@@ -1,0 +1,38 @@
+- hosts: all
+  vars:
+    user: "docker_runner"
+    docker_users:
+      - "{{ user }}"
+    docker_install_compose_plugin: true
+  
+  pre_tasks:
+      - name: Install ACL support for Ansible become
+        become: true
+        ansible.builtin.apt:
+          name: acl
+          state: present
+          update_cache: true
+          
+      - name: Create Docker runner user
+        become: true
+        ansible.builtin.user:
+          name: "{{ user }}"
+          state: present
+
+  roles: 
+    - role: geerlingguy.docker
+      become: true
+
+  tasks:
+    - name: Ensure app container is running
+      become: true
+      become_user: "{{ user }}"
+      community.docker.docker_container:
+        name: bulletin-app
+        image: alexamuek/project-devops-deploy:latest
+        state: started
+        published_ports:
+          - "8080:8080"
+        env:
+          SPRING_PROFILES_ACTIVE: dev
+          JAVA_OPTS: "-Xms256m -Xmx512m"

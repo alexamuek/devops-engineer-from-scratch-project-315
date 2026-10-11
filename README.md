@@ -36,3 +36,10 @@ cd devops-engineer-from-scratch-project-315
 ## О Хекслете
 
 [Хекслет](https://ru.hexlet.io/) — школа программирования: авторские программы обучения с практикой, поддержкой наставников и реальными проектами, которые остаются в резюме. Этот репозиторий — один из таких проектов.
+
+To deploy the app to host run: 
+```bash
+ansible-playbook -i inventory.ini -u alexamuek -K playbook-roles.yml
+```  
+
+The app will be accessable on the host:8080
