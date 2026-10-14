@@ -1,0 +1,39 @@
+---
+# tasks file for run_container_role
+- name: download image
+  become: true
+  become_user: "{{ user }}"
+  community.docker.docker_image_pull:
+    name: "alexamuek/project-devops-deploy:{{ image_tag }}"
+    pull: not_present
+  notify:
+    - restart container
+
+- name: Create container if image exists but container does not exists
+  become: true
+  become_user: "{{ user }}"
+  community.docker.docker_container:
+    name: bulletin-app
+    image: "alexamuek/project-devops-deploy:{{ image_tag }}"
+    state: started
+    volumes:
+      - "/opt/bulletin-board/logs:{{ path_to_logs }}"
+      - "/opt/bulletin-board/data:{{ path_to_data }}"
+      - "/opt/bulletin-board/uploads:{{ path_to_uploads }}"
+    published_ports:
+      - "8080:8080"
+    networks: 
+      - name: network_one
+      - name: network_second
+    env:
+      SPRING_PROFILES_ACTIVE: "{{ profile }}"
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+      SPRING_DATASOURCE_URL: "{{ database_url }}"
+      SPRING_DATASOURCE_USERNAME: "{{ username }}"
+      SPRING_DATASOURCE_PASSWORD: "{{ password }}"
+      STORAGE_S3_ACCESSKEY: "{{ keyID }}"
+      STORAGE_S3_SECRETKEY: "{{ applicationKey }}"
+      STORAGE_S3_BUCKET: "{{ bucketName }}"
+      STORAGE_S3_ENDPOINT: "{{ storage_endpoint }}"
+      STORAGE_S3_REGION: "{{ storage_region }}"
+  tags: "run_container"

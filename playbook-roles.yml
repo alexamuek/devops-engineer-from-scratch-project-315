@@ -1,6 +1,10 @@
 - hosts: all
   vars:
     user: "docker_runner"
+    profile: "prod"
+    image_tag: "ed2d31fdc18c241ce5de9d3db8b2baeaa59c0807"
+    #database_url: "jdbc:h2:file:/app/data/bulletins;MODE=PostgreSQL"
+    database_url: "jdbc:postgresql://postgres:5432/{{ db_name }}"
     docker_users:
       - "{{ user }}"
     docker_install_compose_plugin: true
@@ -12,27 +16,64 @@
           name: acl
           state: present
           update_cache: true
-          
+
       - name: Create Docker runner user
         become: true
         ansible.builtin.user:
           name: "{{ user }}"
           state: present
 
+      - name: Create directories - logs, data, images
+        become: true
+        ansible.builtin.file:
+          path: "{{ item }}"
+          state: directory
+          owner: "{{ user }}"
+          group: "{{ user }}"
+          mode: "0755"
+        loop:
+          - /opt/bulletin-board/logs
+          - /opt/bulletin-board/data
+          - /opt/bulletin-board/postgres
+          - /opt/bulletin-board/uploads
+
   roles: 
     - role: geerlingguy.docker
       become: true
 
   tasks:
-    - name: Ensure app container is running
+    - name: Create docker network - internal
+      become: true
+      become_user: "{{ user }}"
+      community.docker.docker_network:
+        name: network_one
+        internal: true
+        state: present
+
+    - name: Create docker network - external
+      become: true
+      become_user: "{{ user }}"
+      community.docker.docker_network:
+        name: network_second
+        state: present
+
+
+    - name: Create Container with Postgres
       become: true
       become_user: "{{ user }}"
       community.docker.docker_container:
-        name: bulletin-app
-        image: alexamuek/project-devops-deploy:latest
+        name: postgres
+        image: "postgres:18"
         state: started
-        published_ports:
-          - "8080:8080"
+        networks: 
+          - name: network_one
+        volumes:
+          - "/opt/bulletin-board/postgres:/var/lib/postgresql"  
         env:
-          SPRING_PROFILES_ACTIVE: dev
-          JAVA_OPTS: "-Xms256m -Xmx512m"
+          POSTGRES_USER: "{{ username }}"
+          POSTGRES_PASSWORD: "{{ password }}"
+          POSTGRES_DB: "{{ db_name }}"
+
+    - name: Deploy application
+      ansible.builtin.include_role:
+        name: run_container_role

@@ -1,0 +1,9 @@
+---
+# defaults file for run_container_role
+image_tag: latest
+user: alexamuek
+path_to_logs: "/app/logs"
+path_to_data: "/app/data"
+path_to_uploads: "/tmp/bulletin-images"
+profile: "dev"
+database_url: "jdbc:h2:file:/app/data/bulletins;MODE=PostgreSQL"
