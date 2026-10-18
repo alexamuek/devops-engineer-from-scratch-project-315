@@ -8,8 +8,9 @@
     pull: not_present
   notify:
     - restart container
+  tags: "update_app"
 
-- name: Create container if image exists but container does not exists
+- name: Ensure application container is running
   become: true
   become_user: "{{ user }}"
   community.docker.docker_container:
@@ -21,7 +22,7 @@
       - "/opt/bulletin-board/data:{{ path_to_data }}"
       - "/opt/bulletin-board/uploads:{{ path_to_uploads }}"
     published_ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     networks: 
       - name: network_one
       - name: network_second
@@ -29,11 +30,11 @@
       SPRING_PROFILES_ACTIVE: "{{ profile }}"
       JAVA_OPTS: "-Xms256m -Xmx512m"
       SPRING_DATASOURCE_URL: "{{ database_url }}"
-      SPRING_DATASOURCE_USERNAME: "{{ username }}"
-      SPRING_DATASOURCE_PASSWORD: "{{ password }}"
-      STORAGE_S3_ACCESSKEY: "{{ keyID }}"
-      STORAGE_S3_SECRETKEY: "{{ applicationKey }}"
-      STORAGE_S3_BUCKET: "{{ bucketName }}"
+      SPRING_DATASOURCE_USERNAME: "{{ db_user }}"
+      SPRING_DATASOURCE_PASSWORD: "{{ db_password }}"
+      STORAGE_S3_ACCESSKEY: "{{ storage_keyID }}"
+      STORAGE_S3_SECRETKEY: "{{ storage_applicationKey }}"
+      STORAGE_S3_BUCKET: "{{ storage_bucketName }}"
       STORAGE_S3_ENDPOINT: "{{ storage_endpoint }}"
       STORAGE_S3_REGION: "{{ storage_region }}"
-  tags: "run_container"
+  

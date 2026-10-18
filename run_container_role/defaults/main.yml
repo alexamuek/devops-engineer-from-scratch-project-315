@@ -5,5 +5,5 @@ user: alexamuek
 path_to_logs: "/app/logs"
 path_to_data: "/app/data"
 path_to_uploads: "/tmp/bulletin-images"
-profile: "dev"
+profile: "prod"
 database_url: "jdbc:h2:file:/app/data/bulletins;MODE=PostgreSQL"

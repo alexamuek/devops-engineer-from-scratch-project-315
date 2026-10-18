@@ -1,13 +1,21 @@
 - hosts: all
   vars:
+    domain: develop-sc.com
     user: "docker_runner"
-    profile: "prod"
+    nginx_proxy_cache_path: "/var/cache/nginx keys_zone=my_cache:10m"
     image_tag: "ed2d31fdc18c241ce5de9d3db8b2baeaa59c0807"
-    #database_url: "jdbc:h2:file:/app/data/bulletins;MODE=PostgreSQL"
     database_url: "jdbc:postgresql://postgres:5432/{{ db_name }}"
     docker_users:
       - "{{ user }}"
     docker_install_compose_plugin: true
+    certbot_install_method: package
+    certbot_create_if_missing: true
+    certbot_admin_email: "{{ admin_email }}"
+    certbot_create_method: standalone
+    certbot_auto_renew_user: root
+    certbot_certs:
+      - domains:
+        - "{{ domain }}"
   
   pre_tasks:
       - name: Install ACL support for Ansible become
@@ -70,10 +78,66 @@
         volumes:
           - "/opt/bulletin-board/postgres:/var/lib/postgresql"  
         env:
-          POSTGRES_USER: "{{ username }}"
-          POSTGRES_PASSWORD: "{{ password }}"
+          POSTGRES_USER: "{{ db_user }}"
+          POSTGRES_PASSWORD: "{{ db_password }}"
           POSTGRES_DB: "{{ db_name }}"
 
     - name: Deploy application
       ansible.builtin.include_role:
         name: run_container_role
+
+    - name: Install and run nginx
+      ansible.builtin.include_role:
+        name: geerlingguy.nginx
+        apply:
+          become: true
+
+    - name: Copy nginx.conf
+      ansible.builtin.template:
+        src: files/nginx.conf.j2
+        dest: /etc/nginx/conf.d/default.conf
+      become: true
+      notify:
+        - check nginx
+        - restart nginx
+      tags: copy-conf
+
+    - name: certbot
+      ansible.builtin.include_role:
+        name: geerlingguy.certbot
+        apply:
+          become: true
+
+    - name: restart nginx manually
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+      become: true
+      tags: restart_nginx
+
+    - name: restart app
+      ansible.builtin.command:
+        cmd: docker restart bulletin-app
+      become: true
+      become_user: "{{ user }}"
+      tags: "restart_app"
+
+    - name: restart db
+      ansible.builtin.command:
+        cmd: docker restart postgres
+      become: true
+      become_user: "{{ user }}"
+      tags: "restart_db"
+      
+  handlers:
+    - name: check nginx
+      ansible.builtin.command:
+        cmd: nginx -t
+      become: true
+      changed_when: false
+
+    - name: restart nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+      become: true
