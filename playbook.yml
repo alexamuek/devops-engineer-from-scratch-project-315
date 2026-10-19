@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: servers
   vars:
     domain: develop-sc.com
     user: "docker_runner"
