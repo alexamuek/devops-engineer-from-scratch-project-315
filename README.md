@@ -2,6 +2,8 @@
 
 [![hexlet-check](https://github.com/alexamuek/devops-engineer-from-scratch-project-315/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/alexamuek/devops-engineer-from-scratch-project-315/actions)
 
+Приложение доступно на https://develop-sc.com/
+
 Автоматизация раскатывания контейнеризированного приложения на сервер в облаке
 
 Учебный проект Хекслета: https://ru.hexlet.io/programs/devops-engineer-from-scratch
@@ -55,7 +57,7 @@ make restart-db
 ```  
 
 ## Подготовка перед деплоем
-1. Для работы приложения необходимо иметь заполненные данные в файле /group_vars/all/vault.xml. Данный файл должен быть зашифрован командой в директории проекта  
+1. Для работы приложения необходимо иметь заполненные данные в файле /group_vars/servers/vault.xml. Данный файл должен быть зашифрован командой в директории проекта  
 ```bash
 ansible-vault encrypt group_vars/all/vault.yml
 ```  
@@ -98,4 +100,3 @@ ansible-galaxy install -r requirements.yml
 5. Настроено кэширование данных средствами nginx  
 6. Картинки хранятся в s3 storage  
 
-Приложение доступно на https://develop-cs.com/
