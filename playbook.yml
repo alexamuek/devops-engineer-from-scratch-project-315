@@ -1,9 +1,7 @@
 - hosts: servers
   vars:
-    domain: develop-sc.com
     user: "docker_runner"
     nginx_proxy_cache_path: "/var/cache/nginx keys_zone=my_cache:10m"
-    image_tag: "ed2d31fdc18c241ce5de9d3db8b2baeaa59c0807"
     database_url: "jdbc:postgresql://postgres:5432/{{ db_name }}"
     docker_users:
       - "{{ user }}"
@@ -65,26 +63,13 @@
         name: network_second
         state: present
 
-
-    - name: Create Container with Postgres
-      become: true
-      become_user: "{{ user }}"
-      community.docker.docker_container:
-        name: postgres
-        image: "postgres:18"
-        state: started
-        networks: 
-          - name: network_one
-        volumes:
-          - "/opt/bulletin-board/postgres:/var/lib/postgresql"  
-        env:
-          POSTGRES_USER: "{{ db_user }}"
-          POSTGRES_PASSWORD: "{{ db_password }}"
-          POSTGRES_DB: "{{ db_name }}"
+    - name: Run posgres db
+      ansible.builtin.include_role:
+        name: run_postgres_container
 
     - name: Deploy application
       ansible.builtin.include_role:
-        name: run_container_role
+        name: run_app_container
 
     - name: Install and run nginx
       ansible.builtin.include_role:
@@ -108,12 +93,12 @@
         apply:
           become: true
 
-    - name: restart nginx manually
+    - name: reload nginx manually
       ansible.builtin.service:
         name: nginx
         state: reloaded
       become: true
-      tags: restart_nginx
+      tags: reload_nginx
 
     - name: restart app
       ansible.builtin.command:

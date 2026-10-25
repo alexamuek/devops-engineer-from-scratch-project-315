@@ -6,8 +6,6 @@
   community.docker.docker_image_pull:
     name: "alexamuek/project-devops-deploy:{{ image_tag }}"
     pull: not_present
-  notify:
-    - restart container
   tags: "update_app"
 
 - name: Ensure application container is running
@@ -17,6 +15,7 @@
     name: bulletin-app
     image: "alexamuek/project-devops-deploy:{{ image_tag }}"
     state: started
+    restart_policy: unless-stopped
     volumes:
       - "/opt/bulletin-board/logs:{{ path_to_logs }}"
       - "/opt/bulletin-board/data:{{ path_to_data }}"
@@ -37,4 +36,5 @@
       STORAGE_S3_BUCKET: "{{ storage_bucketName }}"
       STORAGE_S3_ENDPOINT: "{{ storage_endpoint }}"
       STORAGE_S3_REGION: "{{ storage_region }}"
+  tags: "update_app"
   

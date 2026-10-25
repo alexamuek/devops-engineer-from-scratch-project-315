@@ -1,0 +1,18 @@
+---
+# tasks file for run_postgres_container
+- name: Create Container with Postgres
+  become: true
+  become_user: "{{ user }}"
+  community.docker.docker_container:
+    name: postgres
+    image: "postgres:18"
+    state: started
+    restart_policy: unless-stopped
+    networks: 
+      - name: network_one
+    volumes:
+      - "/opt/bulletin-board/postgres:/var/lib/postgresql"  
+    env:
+      POSTGRES_USER: "{{ db_user }}"
+      POSTGRES_PASSWORD: "{{ db_password }}"
+      POSTGRES_DB: "{{ db_name }}"
