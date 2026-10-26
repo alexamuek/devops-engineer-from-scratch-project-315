@@ -10,3 +10,5 @@ restart-db:
 	ansible-playbook -i inventory.ini -u root -K --vault-password-file password -t restart_db playbook.yml
 install-roles:
 	ansible-galaxy install -r requirements.yml
+install-collections:
+	ansible-galaxy collection install -r requirements.yml
