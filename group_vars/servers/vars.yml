@@ -1,0 +1,14 @@
+user: "docker_runner"
+nginx_proxy_cache_path: "/var/cache/nginx keys_zone=my_cache:10m"
+database_url: "jdbc:postgresql://postgres:5432/{{ db_name }}"
+docker_users:
+  - "{{ user }}"
+docker_install_compose_plugin: true
+certbot_install_method: package
+certbot_create_if_missing: true
+certbot_admin_email: "{{ admin_email }}"
+certbot_create_method: standalone
+certbot_auto_renew_user: root
+certbot_certs:
+  - domains:
+    - "{{ domain }}"
